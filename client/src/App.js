@@ -27,7 +27,7 @@ class DefaultPlayground extends Component {
           player: {
             ...prevState,
             position: {
-              x: prevState.player.position.x - 1,
+              x: prevState.player.position.x - 0.05,
               y: prevState.player.position.y
             }
           }
@@ -78,8 +78,36 @@ class DefaultPlayground extends Component {
     }
   }
 
+  changePointPosition({ x, y }) {
+    this.setState(prevState => ({
+      ...prevState,
+      player: {
+        ...prevState,
+        position: {
+          x: prevState.player.position.x,
+          y: prevState.player.position.y - 1
+        }
+      }
+    }))
+  }
+
+
   componentDidMount() {
     window.addEventListener('keydown', this.handleKeyDown);
+    setInterval(() => {
+      console.log("tick")
+      this.setState(prevState => ({
+        ...prevState,
+        player: {
+          ...prevState.player,
+          position: {
+            x: prevState.player.position.x + 0.1,
+            y: prevState.player.position.y
+          }
+        }
+      }))
+    }, 200)
+
   }
 
   render() {
@@ -87,10 +115,10 @@ class DefaultPlayground extends Component {
       <div className="demo" >
         <Engine antialias={true} adaptToDeviceRatio={true} canvasId="sample-canvas">
           <Scene>
-            <FreeCamera name="camera1" position={new Vector3(0, 5, -10)} setTarget={[Vector3.Zero()]} />
+            <FreeCamera name="camera1" position={new Vector3(0, 90, 10)} setTarget={[Vector3.Zero(), Vector3.One()]} />
             <HemisphericLight name="light1" intensity={0.7} direction={Vector3.Up()} />
             <Sphere name="sphere1" diameter={2} segments={16} position={new Vector3(this.state.player.position.x, this.state.player.position.y, 0)} />
-            <Ground name="ground1" width={6} height={6} subdivisions={2} />
+            <Ground name="ground1" width={60} height={60} subdivisions={2} />
           </Scene>
         </Engine>
       </div>
