@@ -1,34 +1,36 @@
 import isInsidePolygon from 'robust-point-in-polygon';
-import { get } from 'https';
+import * as turf from '@turf/turf';
 
 const FLOAT_CMP_DELTA = 0.01;
 const cmpPointFactory = (pt1, pt2) => Math.abs(pt1[0] - pt2[0]) < FLOAT_CMP_DELTA && Math.abs(pt1[1] - pt2[1]) < FLOAT_CMP_DELTA
 
-const player = {
-  isInsideTerritory: true,
-  position: [2, 3],
-  territory: [[1, 1], [2, 2], [2, 3], [1, 4]],
-  currentPath: [[2, 2], [3, 1], [4, 1], [2, 3]],
-}
 
-const INIT_TERRITORY_RADIUS = 20;
-const INIT_TERRITORY_POINT_NUM = 10;
+const INIT_TERRITORY_RADIUS = 100;
+const INIT_TERRITORY_POINT_NUM = 50;
 const MAP_SIZE = 2000;
 
 const boundedTerritoryCordGen = () => 
   Math.floor(Math.random() * ((MAP_SIZE - 2*INIT_TERRITORY_RADIUS) - 2*INIT_TERRITORY_RADIUS + 1) + 2*INIT_TERRITORY_RADIUS);
 
-const getInitialCirclePoints = (numNodes, radius, position) =>
-  [...(Array(numNodes))].map((_, i) => {
+const getInitialCirclePoints = (numNodes, radius, position) => {
+  const points = [...(Array(numNodes))].map((_, i) => {
     const angle = (i / (numNodes/2)) * Math.PI;
     const x = (radius * Math.cos(angle)) + position[0];
     const y = (radius * Math.sin(angle)) + position[1];
     return [x, y];
   });
 
-export const generateInitialTerritory = () => {
+  const [first, ...rest] = points;
+
+  return [first, ...rest, first];
+}
+
+export const generateInitalPlayer = () => {
   const position = [ boundedTerritoryCordGen(), boundedTerritoryCordGen()];
+
   return ({
+    isInsideTerritory: true,
+    currentPath: [],
     territory: getInitialCirclePoints(INIT_TERRITORY_POINT_NUM, INIT_TERRITORY_RADIUS, position),
     position,
   });
@@ -43,6 +45,9 @@ export const shouldMergeWithPath = (isInsideTerritory, position, territory) => {
 
   return false;
 }
+
+export const checkInsideTerritory = (pt, territory) =>
+  turf.booleanPointInPolygon(turf.point(pt), turf.polygon([territory]));
 
 export const mergeTerritoryWithPath = (territory, path) => {
   const pathStart = path[0];
